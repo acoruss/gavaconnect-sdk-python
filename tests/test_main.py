@@ -1,6 +1,7 @@
 """Test the main module functionality."""
 
 import pytest
+
 from gavaconnect_sdk_python import main
 
 
