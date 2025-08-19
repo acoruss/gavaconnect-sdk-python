@@ -1,17 +1,32 @@
 [project]
 name = "gavaconnect-sdk-python"
 version = "0.1.0"
-description = "Add your description here"
+description = "Python SDK for GavaConnect API"
 readme = "README.md"
 authors = [
     { name = "Musale Martin", email = "martinmshale@gmail.com" }
 ]
 requires-python = ">=3.13"
 dependencies = []
+license = { text = "MIT" }
+keywords = ["gavaconnect", "sdk", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/acoruss/gavaconnect-sdk-python"
+Repository = "https://github.com/acoruss/gavaconnect-sdk-python"
+Documentation = "https://github.com/acoruss/gavaconnect-sdk-python#readme"
+Issues = "https://github.com/acoruss/gavaconnect-sdk-python/issues"
 
 [project.scripts]
 gavaconnect-sdk-python = "gavaconnect_sdk_python:main"
 
 [build-system]
-requires = ["uv_build>=0.8.0,<0.9"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
