@@ -1,0 +1,17 @@
+[project]
+name = "gavaconnect-sdk-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Musale Martin", email = "martinmshale@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+gavaconnect-sdk-python = "gavaconnect_sdk_python:main"
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9"]
+build-backend = "uv_build"
