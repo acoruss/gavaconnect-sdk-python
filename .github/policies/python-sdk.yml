@@ -1,0 +1,21 @@
+name: sdk-protection
+description: Branch protection policy for the gavaconnect-sdk-python repository
+resource: repository
+configuration:
+  branchProtectionRules:
+    - branchNamePattern: main
+      allowsDeletions: false
+      allowsForcePushes: false
+      dismissStaleReviews: true
+      isAdminEnforced: false
+      requiresPullRequestBeforeMerging: true
+      requiredApprovingReviewsCount: 1
+      requireCodeOwnersReview: true
+      requiresCommitSignatures: false
+      requiresConversationResolution: true
+      requiresLinearHistory: false
+      requiredStatusChecks:
+        - lint-and-test
+      requiresStrictStatusChecks: true
+      restrictsPushes: false
+      restrictsReviewDismissals: false
