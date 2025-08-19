@@ -9,7 +9,6 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-    environment: sdks
     strategy:
       matrix:
         python-version: ["3.13"]
