@@ -2,7 +2,7 @@
 
 import pytest
 
-from gavaconnect_sdk_python import main
+from gavaconnect import main
 
 
 def test_main_function_exists() -> None:

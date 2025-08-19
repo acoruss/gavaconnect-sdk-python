@@ -4,6 +4,7 @@ version = "0.2.0"
 description = "Python SDK for GavaConnect API"
 readme = "README.md"
 authors = [
+    { name = "Acoruss", email = "acoruss+sdks@gmail.com" },
     { name = "Musale Martin", email = "martinmshale@gmail.com" }
 ]
 requires-python = ">=3.13"
@@ -34,7 +35,7 @@ Documentation = "https://github.com/acoruss/gavaconnect-sdk-python#readme"
 Issues = "https://github.com/acoruss/gavaconnect-sdk-python/issues"
 
 [project.scripts]
-gavaconnect-sdk-python = "gavaconnect_sdk_python:main"
+gavaconnect-sdk-python = "gavaconnect:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -99,7 +100,7 @@ python_functions = ["test_*"]
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["src"]
+source = ["gavaconnect"]
 branch = true
 
 [tool.coverage.report]
@@ -115,3 +116,6 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["gavaconnect"]

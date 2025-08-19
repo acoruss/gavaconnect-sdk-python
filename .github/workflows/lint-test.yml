@@ -29,20 +29,20 @@ jobs:
         run: uv sync --extra dev
 
       - name: Type check with mypy
-        run: uv run mypy src/
+        run: uv run mypy gavaconnect/
 
       - name: Lint with ruff
         run: |
-          uv run ruff check src/ tests/
-          uv run ruff format --check src/ tests/
+          uv run ruff check gavaconnect/ tests/
+          uv run ruff format --check gavaconnect/ tests/
 
       - name: Security check with bandit
-        run: uv run bandit -r src/
+        run: uv run bandit -r gavaconnect/
 
       - name: Run tests with pytest
         run: |
           uv run pytest tests/ \
-            --cov=src/gavaconnect_sdk_python \
+            --cov=gavaconnect \
             --cov-report=xml \
             --cov-report=term-missing \
             --cov-fail-under=80
