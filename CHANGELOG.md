@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.0](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.1.2...gavaconnect-sdk-python-v0.2.0) (2025-08-19)
+
+
+### Features
+
+* add branch protection policy for main branch in python-sdk.yml ([a20fd9b](https://github.com/acoruss/gavaconnect-sdk-python/commit/a20fd9b36969145e6301c76a11fba7f5d0184b55))
+* add CODEOWNERS file to define code ownership ([c2d9c5d](https://github.com/acoruss/gavaconnect-sdk-python/commit/c2d9c5d2ac6175d1ffba7e082fd9e77748e4b3f2))
+
+
+### Bug Fixes
+
+* correct status check name in branch protection policy ([e231d6b](https://github.com/acoruss/gavaconnect-sdk-python/commit/e231d6b6f3e167b606773d25fb7396a16760bc35))
+* remove unnecessary environment declaration from lint-and-test job ([8c63a0c](https://github.com/acoruss/gavaconnect-sdk-python/commit/8c63a0cd38842c968158978c794d151c8de18ede))
+* update Codecov action to v4 and adjust configuration settings ([ea8ea9b](https://github.com/acoruss/gavaconnect-sdk-python/commit/ea8ea9b9c2b53428b5ecb3895380aa2272b36693))
+* update Codecov action to v5 and adjust configuration ([c808910](https://github.com/acoruss/gavaconnect-sdk-python/commit/c808910bc832a4bdf1c96ed5bef7c1ed832b5bd7))
+
+
+### Miscellaneous
+
+* add branch protection policy for main, codeowners and setup tests ([e63f53a](https://github.com/acoruss/gavaconnect-sdk-python/commit/e63f53a648ac34106960bb1f93e996399f8fa7fb))
+
 ## [0.1.2](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.1.1...gavaconnect-sdk-python-v0.1.2) (2025-08-19)
 
 
