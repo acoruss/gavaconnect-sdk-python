@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.1](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.2.0...gavaconnect-sdk-python-v0.2.1) (2025-08-19)
+
+
+### Bug Fixes
+
+* change to a simple folder layout ([1374e49](https://github.com/acoruss/gavaconnect-sdk-python/commit/1374e49a5f8852daec769e477d3a7576c7affb30))
+* change to a simple folder layout ([40eebb8](https://github.com/acoruss/gavaconnect-sdk-python/commit/40eebb81e6c55474f554b11eb783402fb4639453))
+* restrict pull request triggers to the main branch only ([c49bc4a](https://github.com/acoruss/gavaconnect-sdk-python/commit/c49bc4afde0143f2d52a6b5f48cbafb97f89e12e))
+
+
+### Miscellaneous
+
+* restrict pull request triggers to the main branch only ([93612e8](https://github.com/acoruss/gavaconnect-sdk-python/commit/93612e8a9d61ce3b9c1c410754ec9fb65579cd00))
+
 ## [0.2.0](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.1.2...gavaconnect-sdk-python-v0.2.0) (2025-08-19)
 
 
