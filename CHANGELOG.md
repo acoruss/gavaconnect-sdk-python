@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.1.1...gavaconnect-sdk-python-v0.1.2) (2025-08-19)
+
+
+### Bug Fixes
+
+* update build-publish workflow to restrict execution to main bran… ([3bcf876](https://github.com/acoruss/gavaconnect-sdk-python/commit/3bcf876fefdc46ef1d65e12f9488373cacbaa413))
+* update build-publish workflow to restrict execution to main branch only ([9d77907](https://github.com/acoruss/gavaconnect-sdk-python/commit/9d7790795f280bda396f9979dbc081019f700b11))
+
 ## [0.1.1](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.1.0...gavaconnect-sdk-python-v0.1.1) (2025-08-19)
 
 
