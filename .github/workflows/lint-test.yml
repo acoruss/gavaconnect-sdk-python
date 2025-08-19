@@ -9,6 +9,7 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    environment: sdks
     strategy:
       matrix:
         python-version: ["3.13"]
@@ -51,7 +52,8 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.13'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v4
         with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
