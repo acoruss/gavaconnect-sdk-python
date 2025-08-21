@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+from typing import Any
 
 import httpx
 
@@ -13,7 +14,7 @@ from gavaconnect.errors import APIError, RateLimitError, TransportError
 
 
 def _jitter(base: float, attempt: int) -> float:
-    return base * (2 ** (attempt - 1)) * (1 + random.random() * 0.2)
+    return float(base * (2 ** (attempt - 1)) * (1 + random.random() * 0.2))
 
 
 class AsyncTransport:
@@ -43,7 +44,7 @@ class AsyncTransport:
         await self.client.aclose()
 
     async def request(
-        self, method: str, url: str, *, auth: AuthPolicy | None = None, **kw: object
+        self, method: str, url: str, *, auth: AuthPolicy | None = None, **kw: Any
     ) -> httpx.Response:
         """Make an HTTP request with retry logic and authentication.
 
