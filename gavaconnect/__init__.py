@@ -12,7 +12,5 @@ __all__ = [
     "APIError",
     "RateLimitError",
     "TransportError",
-    "AsyncGavaConnect",
-    "GavaConnect",
     "KRAPINChecker",
 ]
