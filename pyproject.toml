@@ -44,7 +44,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.setuptools.package-data]
-gavaconnect = ["py.typed"]
+[tool.hatch.build.targets.wheel]
+include = [
+    "gavaconnect/py.typed"
+]
 
 # Ruff configuration
 [tool.ruff]
