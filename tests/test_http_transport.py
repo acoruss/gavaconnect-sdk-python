@@ -9,32 +9,32 @@ import pytest
 from gavaconnect.auth import AuthPolicy
 from gavaconnect.config import RetryPolicy, SDKConfig
 from gavaconnect.errors import APIError, RateLimitError, TransportError
-from gavaconnect.http.transport import AsyncTransport, _jitter
+from gavaconnect.http.transport import AsyncTransport, _full_jitter
 
 
 class TestJitter:
-    """Test the _jitter function."""
+    """Test the _full_jitter function."""
 
     def test_jitter_calculation(self):
         """Test jitter calculation with different inputs."""
-        # Test with base=1.0, attempt=1
-        result = _jitter(1.0, 1)
-        # Should be base * (2^0) * (1 + random * 0.2) = 1.0 * 1 * (1.0 to 1.2)
-        assert 1.0 <= result <= 1.2
+        # Test with base=1.0, attempt=1, cap=10.0
+        result = _full_jitter(1.0, 1, 10.0)
+        # Should be uniform random between 0 and min(cap, base*2^attempt) = min(10, 1*2) = 2
+        assert 0.0 <= result <= 2.0
 
-        # Test with base=0.5, attempt=2
-        result = _jitter(0.5, 2)
-        # Should be 0.5 * (2^1) * (1.0 to 1.2) = 1.0 to 1.2
-        assert 1.0 <= result <= 1.2
+        # Test with base=0.5, attempt=2, cap=10.0
+        result = _full_jitter(0.5, 2, 10.0)
+        # Should be uniform random between 0 and min(10, 0.5*4) = 2.0
+        assert 0.0 <= result <= 2.0
 
-        # Test with base=0.2, attempt=3
-        result = _jitter(0.2, 3)
-        # Should be 0.2 * (2^2) * (1.0 to 1.2) = 0.8 to 0.96
-        assert 0.8 <= result <= 0.96
+        # Test with base=0.2, attempt=3, cap=1.0
+        result = _full_jitter(0.2, 3, 1.0)
+        # Should be uniform random between 0 and min(1.0, 0.2*8) = 1.0
+        assert 0.0 <= result <= 1.0
 
     def test_jitter_randomness(self):
         """Test that jitter produces different results."""
-        results = [_jitter(1.0, 1) for _ in range(10)]
+        results = [_full_jitter(1.0, 1, 10.0) for _ in range(10)]
         # Results should not all be the same (very unlikely)
         assert len(set(results)) > 1
 
@@ -75,6 +75,7 @@ class TestAsyncTransport:
 
         # Mock the client methods
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response = Mock()
         mock_response.status_code = 200
 
@@ -108,6 +109,7 @@ class TestAsyncTransport:
 
         # Mock the client methods
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response = Mock()
         mock_response.status_code = 200
 
@@ -142,6 +144,7 @@ class TestAsyncTransport:
 
         # Mock responses: first 401, then 200
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response_401 = Mock()
         mock_response_401.status_code = 401
         mock_response_200 = Mock()
@@ -177,6 +180,7 @@ class TestAsyncTransport:
         transport = AsyncTransport(config)
 
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         http_error = httpx.ConnectError("Connection failed")
         mock_response = Mock()
         mock_response.status_code = 200
@@ -208,6 +212,7 @@ class TestAsyncTransport:
         transport = AsyncTransport(config)
 
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         http_error = httpx.ConnectError("Connection failed")
 
         with (
@@ -233,6 +238,7 @@ class TestAsyncTransport:
         transport = AsyncTransport(config)
 
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response_503 = Mock()
         mock_response_503.status_code = 503
         mock_response_503.headers = {}
@@ -266,6 +272,7 @@ class TestAsyncTransport:
         transport = AsyncTransport(config)
 
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response_429 = Mock()
         mock_response_429.status_code = 429
         mock_response_429.headers = {"retry-after": "2"}
@@ -285,7 +292,10 @@ class TestAsyncTransport:
             result = await transport.request("GET", "/test")
 
             assert result == mock_response_200
-            mock_sleep.assert_called_once_with(2.0)
+            # Check that sleep was called once with a value close to 2.0 (±10% jitter)
+            mock_sleep.assert_called_once()
+            sleep_value = mock_sleep.call_args[0][0]
+            assert 1.8 <= sleep_value <= 2.2  # 2.0 ± 10%
 
         await transport.close()
 
@@ -427,6 +437,7 @@ class TestAsyncTransportIntegration:
         """Test complete request flow with mocked httpx client."""
         # Mock a complete successful request
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response = Mock()
         mock_response.status_code = 200
 
@@ -454,6 +465,7 @@ class TestAsyncTransportIntegration:
     async def test_request_with_keyword_arguments(self, transport: AsyncTransport):
         """Test that keyword arguments are properly passed through."""
         mock_request = Mock()
+        mock_request.extensions = {}  # Add extensions attribute
         mock_response = Mock()
         mock_response.status_code = 201
 

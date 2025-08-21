@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass, field
 
+from ._version import __version__
+
 
 @dataclass(slots=True)
 class RetryPolicy:
@@ -9,6 +11,7 @@ class RetryPolicy:
 
     max_attempts: int = 3
     base_backoff_s: float = 0.2
+    max_cap_s: float = 60.0  # Maximum cap for backoff delay
     retry_on_status: tuple[int, ...] = (429, 500, 502, 503, 504)
 
 
@@ -21,4 +24,4 @@ class SDKConfig:
     read_timeout_s: float = 30.0
     total_timeout_s: float = 40.0
     retry: RetryPolicy = field(default_factory=RetryPolicy)
-    user_agent: str = "gavaconnect-py/1.0.0"
+    user_agent: str = f"gavaconnect-py/{__version__}"
