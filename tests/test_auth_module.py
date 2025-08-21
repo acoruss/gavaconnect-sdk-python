@@ -28,6 +28,7 @@ class TestAuthModuleImports:
         assert isinstance(auth.__all__, list)
 
         expected_exports = {
+            "AuthPolicy",
             "BasicAuthPolicy",
             "BasicCredentials",
             "BearerAuthPolicy",
