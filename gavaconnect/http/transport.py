@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import random
+from typing import Any
 
 import httpx
 
@@ -44,7 +45,12 @@ class AsyncTransport:
         await self.client.aclose()
 
     async def request(
-        self, method: str, url: str, *, auth: AuthPolicy | None = None, **kw: object
+        self,
+        method: str,
+        url: str,
+        *,
+        auth: AuthPolicy | None = None,
+        **kw: Any,  # noqa: ANN401
     ) -> httpx.Response:
         """Make an HTTP request with retry logic and authentication.
 
