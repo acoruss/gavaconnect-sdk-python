@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.2.1...gavaconnect-sdk-python-v0.3.0) (2025-08-21)
+
+
+### Features
+
+* add helper utilities ([edc01ac](https://github.com/acoruss/gavaconnect-sdk-python/commit/edc01acf6e1a5fc04252938c735ec03e037af76b))
+* add HTTP transport layer with logging and OpenTelemetry support ([2fed65b](https://github.com/acoruss/gavaconnect-sdk-python/commit/2fed65bc6a225338a0384fc08cb2202a5e4dd9c5))
+* configuration and setup ([dadc42e](https://github.com/acoruss/gavaconnect-sdk-python/commit/dadc42eab2122d04f38b3bdf9e7d54615d2bde86))
+* implement authentication module with Basic and Bearer policies ([4354ba1](https://github.com/acoruss/gavaconnect-sdk-python/commit/4354ba1041b5df55d7744ccbcd2a86796997c928))
+
+
+### Bug Fixes
+
+* update GH policy to restrict pushing to main ([a1e567e](https://github.com/acoruss/gavaconnect-sdk-python/commit/a1e567e808a81ecfb5f06e97f4b85333e5b0758c))
+
+
+### Miscellaneous
+
+* update common files ([069c044](https://github.com/acoruss/gavaconnect-sdk-python/commit/069c044c7c41890a93da885b9a910e835688af83))
+
 ## [0.2.1](https://github.com/acoruss/gavaconnect-sdk-python/compare/gavaconnect-sdk-python-v0.2.0...gavaconnect-sdk-python-v0.2.1) (2025-08-19)
 
 
