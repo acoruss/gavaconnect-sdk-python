@@ -161,60 +161,67 @@ class TestParseRetryAfter:
     def test_parse_retry_after_http_date(self):
         """Test parsing HTTP date format."""
         # Test with a future date
-        with patch('gavaconnect.helpers.idempotency.datetime') as mock_datetime:
+        with patch("gavaconnect.helpers.idempotency.datetime") as mock_datetime:
             # Mock current time
-            mock_now = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+            mock_now = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=datetime.UTC)
             mock_datetime.datetime.now.return_value = mock_now
-            mock_datetime.UTC = datetime.timezone.utc
-            
+            mock_datetime.UTC = datetime.UTC
+
             # Test future date (30 seconds later)
             result = _parse_retry_after("Sun, 01 Jan 2023 12:00:30 GMT")
             assert result == 30.0
 
     def test_parse_retry_after_past_date(self):
         """Test parsing past HTTP date."""
-        with patch('gavaconnect.helpers.idempotency.datetime') as mock_datetime:
+        with patch("gavaconnect.helpers.idempotency.datetime") as mock_datetime:
             # Mock current time
-            mock_now = datetime.datetime(2023, 1, 1, 12, 0, 30, tzinfo=datetime.timezone.utc)
+            mock_now = datetime.datetime(2023, 1, 1, 12, 0, 30, tzinfo=datetime.UTC)
             mock_datetime.datetime.now.return_value = mock_now
-            mock_datetime.UTC = datetime.timezone.utc
-            
+            mock_datetime.UTC = datetime.UTC
+
             # Test past date (same time but earlier)
             result = _parse_retry_after("Sun, 01 Jan 2023 12:00:00 GMT")
             assert result == 0.0
 
     def test_parse_retry_after_exception_handling(self):
         """Test exception handling in HTTP date parsing."""
-        with patch('gavaconnect.helpers.idempotency.parsedate_to_datetime') as mock_parse:
+        with patch(
+            "gavaconnect.helpers.idempotency.parsedate_to_datetime"
+        ) as mock_parse:
             # Mock an exception during parsing
             mock_parse.side_effect = Exception("Parsing error")
-            
+
             result = _parse_retry_after("Some date string")
             assert result is None
 
     def test_parse_retry_after_none_datetime(self):
         """Test when parsedate_to_datetime returns None."""
-        with patch('gavaconnect.helpers.idempotency.parsedate_to_datetime') as mock_parse:
+        with patch(
+            "gavaconnect.helpers.idempotency.parsedate_to_datetime"
+        ) as mock_parse:
             # Mock returning None
             mock_parse.return_value = None
-            
+
             result = _parse_retry_after("Invalid date format")
             assert result is None
 
     def test_parse_retry_after_naive_datetime(self):
         """Test when parsedate_to_datetime returns a naive datetime (no timezone)."""
-        with patch('gavaconnect.helpers.idempotency.parsedate_to_datetime') as mock_parse, \
-             patch('gavaconnect.helpers.idempotency.datetime') as mock_datetime:
-            
+        with (
+            patch(
+                "gavaconnect.helpers.idempotency.parsedate_to_datetime"
+            ) as mock_parse,
+            patch("gavaconnect.helpers.idempotency.datetime") as mock_datetime,
+        ):
             # Mock a naive datetime (no timezone)
             naive_dt = datetime.datetime(2023, 1, 1, 12, 0, 30)
             mock_parse.return_value = naive_dt
-            
+
             # Mock current time
-            mock_now = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+            mock_now = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=datetime.UTC)
             mock_datetime.datetime.now.return_value = mock_now
-            mock_datetime.UTC = datetime.timezone.utc
-            
+            mock_datetime.UTC = datetime.UTC
+
             result = _parse_retry_after("Sun, 01 Jan 2023 12:00:30 GMT")
             assert result == 30.0
 
@@ -288,22 +295,34 @@ class TestCanRetry:
 
     def test_can_retry_non_idempotent_with_key(self):
         """Test that non-idempotent methods with idempotency key can be retried."""
-        req = httpx.Request("POST", "https://example.com", headers={"idempotency-key": "test-key"})
+        req = httpx.Request(
+            "POST", "https://example.com", headers={"idempotency-key": "test-key"}
+        )
         assert _can_retry("POST", req) is True
 
-        req = httpx.Request("PUT", "https://example.com", headers={"Idempotency-Key": "test-key"})
+        req = httpx.Request(
+            "PUT", "https://example.com", headers={"Idempotency-Key": "test-key"}
+        )
         assert _can_retry("PUT", req) is True
 
-        req = httpx.Request("PATCH", "https://example.com", headers={"IDEMPOTENCY-KEY": "test-key"})
+        req = httpx.Request(
+            "PATCH", "https://example.com", headers={"IDEMPOTENCY-KEY": "test-key"}
+        )
         assert _can_retry("PATCH", req) is True
 
     def test_can_retry_case_insensitive_header(self):
         """Test that idempotency key header check is case insensitive."""
-        req = httpx.Request("POST", "https://example.com", headers={"idempotency-key": "test"})
+        req = httpx.Request(
+            "POST", "https://example.com", headers={"idempotency-key": "test"}
+        )
         assert _can_retry("POST", req) is True
 
-        req = httpx.Request("POST", "https://example.com", headers={"Idempotency-Key": "test"})
+        req = httpx.Request(
+            "POST", "https://example.com", headers={"Idempotency-Key": "test"}
+        )
         assert _can_retry("POST", req) is True
 
-        req = httpx.Request("POST", "https://example.com", headers={"IDEMPOTENCY-KEY": "test"})
+        req = httpx.Request(
+            "POST", "https://example.com", headers={"IDEMPOTENCY-KEY": "test"}
+        )
         assert _can_retry("POST", req) is True

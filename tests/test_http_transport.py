@@ -1,6 +1,7 @@
 """Tests for HTTP transport layer."""
 
 import json
+from typing import Never
 from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
@@ -504,7 +505,7 @@ class TestAsyncTransportIntegration:
         transport = AsyncTransport(config)
 
         # Create a failing request hook
-        async def failing_hook(req):
+        async def failing_hook(req: httpx.Request) -> Never:
             raise Exception("Hook failure")
 
         # Add the failing hook
@@ -542,7 +543,7 @@ class TestAsyncTransportIntegration:
         transport = AsyncTransport(config)
 
         # Create a failing response hook
-        async def failing_hook(req, resp):
+        async def failing_hook(req: httpx.Request, resp: httpx.Response) -> Never:
             raise Exception("Response hook failure")
 
         # Add the failing hook
@@ -577,8 +578,7 @@ class TestAsyncTransportIntegration:
     async def test_network_error_max_retries_exceeded(self):
         """Test network error when max retries exceeded."""
         config = SDKConfig(
-            base_url="https://api.example.com",
-            retry=RetryPolicy(max_attempts=2)
+            base_url="https://api.example.com", retry=RetryPolicy(max_attempts=2)
         )
         transport = AsyncTransport(config)
 
@@ -701,13 +701,13 @@ class TestAsyncTransportIntegration:
         """Test request hook exception during retry."""
         config = SDKConfig(
             base_url="https://api.example.com",
-            retry=RetryPolicy(max_attempts=2, retry_on_status={500})
+            retry=RetryPolicy(max_attempts=2, retry_on_status={500}),
         )
         transport = AsyncTransport(config)
 
         call_count = 0
 
-        async def failing_hook_on_retry(req):
+        async def failing_hook_on_retry(req: httpx.Request) -> None:
             nonlocal call_count
             call_count += 1
             if call_count > 1:  # Fail on retry
@@ -746,7 +746,9 @@ class TestAsyncTransportIntegration:
             # Verify that the retry hook exception was logged
             mock_logger.debug.assert_called()
             logged_messages = [call[0][0] for call in mock_logger.debug.call_args_list]
-            assert any("Request hook failed during retry" in msg for msg in logged_messages)
+            assert any(
+                "Request hook failed during retry" in msg for msg in logged_messages
+            )
 
         await transport.close()
 
@@ -758,7 +760,7 @@ class TestAsyncTransportIntegration:
 
         call_count = 0
 
-        async def failing_hook_on_auth_retry(req):
+        async def failing_hook_on_auth_retry(req: httpx.Request) -> None:
             nonlocal call_count
             call_count += 1
             if call_count > 1:  # Fail on auth retry
@@ -799,7 +801,9 @@ class TestAsyncTransportIntegration:
             # Verify that the auth retry hook exception was logged
             mock_logger.debug.assert_called()
             logged_messages = [call[0][0] for call in mock_logger.debug.call_args_list]
-            assert any("Request hook failed during retry" in msg for msg in logged_messages)
+            assert any(
+                "Request hook failed during retry" in msg for msg in logged_messages
+            )
 
         await transport.close()
 
@@ -808,7 +812,7 @@ class TestAsyncTransportIntegration:
         """Test retry with Retry-After header and wiggle factor."""
         config = SDKConfig(
             base_url="https://api.example.com",
-            retry=RetryPolicy(max_attempts=2, retry_on_status={429})
+            retry=RetryPolicy(max_attempts=2, retry_on_status={429}),
         )
         transport = AsyncTransport(config)
 
@@ -842,7 +846,7 @@ class TestAsyncTransportIntegration:
             result = await transport.request("GET", "/test")
 
             assert result == second_response
-            
+
             # Verify sleep was called with wiggled value
             mock_sleep.assert_called_once()
             sleep_duration = mock_sleep.call_args[0][0]
@@ -855,8 +859,7 @@ class TestAsyncTransportIntegration:
     async def test_network_error_retry_with_auth(self):
         """Test network error retry with auth authorization."""
         config = SDKConfig(
-            base_url="https://api.example.com",
-            retry=RetryPolicy(max_attempts=2)
+            base_url="https://api.example.com", retry=RetryPolicy(max_attempts=2)
         )
         transport = AsyncTransport(config)
 
@@ -897,7 +900,7 @@ class TestAsyncTransportIntegration:
         """Test status code retry with auth authorization."""
         config = SDKConfig(
             base_url="https://api.example.com",
-            retry=RetryPolicy(max_attempts=2, retry_on_status={500})
+            retry=RetryPolicy(max_attempts=2, retry_on_status={500}),
         )
         transport = AsyncTransport(config)
 
