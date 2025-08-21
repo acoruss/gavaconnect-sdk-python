@@ -3,7 +3,7 @@
 import uuid
 from unittest.mock import Mock, patch
 
-from gavaconnect.helpers.idempontency import idempotency_headers
+from gavaconnect.helpers.idempotency import idempotency_headers
 
 
 class TestIdempotencyHeaders:
