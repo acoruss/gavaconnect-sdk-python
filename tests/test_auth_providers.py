@@ -1,7 +1,6 @@
 """Tests for token provider implementations."""
 
 import asyncio
-import time
 from unittest.mock import patch
 
 import httpx
@@ -19,9 +18,9 @@ class TestClientCredentialsProvider:
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         assert provider._url == "https://auth.example.com/token"
         assert provider._cid == "test_client"
         assert provider._sec == "test_secret"
@@ -41,9 +40,9 @@ class TestClientCredentialsProvider:
             client_secret="test_secret",
             scope="read write",
             early_refresh_s=120,
-            client=custom_client
+            client=custom_client,
         )
-        
+
         assert provider._scope == "read write"
         assert provider._early == 120
         assert provider._client is custom_client
@@ -55,32 +54,28 @@ class TestClientCredentialsProvider:
         # Mock the token endpoint
         token_route = respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(
-                200,
-                json={
-                    "access_token": "test_access_token",
-                    "expires_in": 3600
-                }
+                200, json={"access_token": "test_access_token", "expires_in": 3600}
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
-        with patch('time.time', return_value=1000.0):
+
+        with patch("time.time", return_value=1000.0):
             token, exp_time = await provider._fetch()
-        
+
         assert token == "test_access_token"
         assert exp_time == 1000.0 + max(30.0, 3600 - 60)  # 4540.0
-        
+
         # Verify the request was made correctly
         assert token_route.called
         request = token_route.calls[0].request
         assert request.method == "POST"
         assert request.url == "https://auth.example.com/token"
-        
+
         # Check the form data
         form_data = dict(httpx.QueryParams(request.content.decode()))
         assert form_data["grant_type"] == "client_credentials"
@@ -92,23 +87,19 @@ class TestClientCredentialsProvider:
         """Test successful token fetch with scope."""
         token_route = respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(
-                200,
-                json={
-                    "access_token": "scoped_token",
-                    "expires_in": 7200
-                }
+                200, json={"access_token": "scoped_token", "expires_in": 7200}
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
             client_secret="test_secret",
-            scope="read write admin"
+            scope="read write admin",
         )
-        
+
         await provider._fetch()
-        
+
         # Verify scope was included in request
         assert token_route.called
         request = token_route.calls[0].request
@@ -125,21 +116,21 @@ class TestClientCredentialsProvider:
                 200,
                 json={
                     "access_token": "short_lived_token",
-                    "expires_in": 300  # 5 minutes
-                }
+                    "expires_in": 300,  # 5 minutes
+                },
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
             client_secret="test_secret",
-            early_refresh_s=60
+            early_refresh_s=60,
         )
-        
-        with patch('time.time', return_value=2000.0):
+
+        with patch("time.time", return_value=2000.0):
             token, exp_time = await provider._fetch()
-        
+
         # Should use max(30.0, 300 - 60) = 240
         assert exp_time == 2000.0 + 240.0
 
@@ -153,19 +144,19 @@ class TestClientCredentialsProvider:
                 json={
                     "access_token": "default_ttl_token"
                     # No expires_in field
-                }
+                },
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
-        with patch('time.time', return_value=3000.0):
+
+        with patch("time.time", return_value=3000.0):
             token, exp_time = await provider._fetch()
-        
+
         # Should use default 3600 seconds: max(30.0, 3600 - 60) = 3540
         assert exp_time == 3000.0 + 3540.0
 
@@ -176,13 +167,13 @@ class TestClientCredentialsProvider:
         respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(401, json={"error": "invalid_client"})
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         with pytest.raises(httpx.HTTPStatusError):
             await provider._fetch()
 
@@ -192,18 +183,18 @@ class TestClientCredentialsProvider:
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         # Mock the _fetch method directly for this test
-        async def mock_fetch():
+        async def mock_fetch() -> tuple[str, float]:
             return "fresh_token", 5000.0
-        
+
         provider._fetch = mock_fetch
-        
-        with patch('time.time', return_value=1000.0):
+
+        with patch("time.time", return_value=1000.0):
             token = await provider.get_token()
-        
+
         assert token == "fresh_token"
         assert provider._token == "fresh_token"
         assert provider._exp == 5000.0
@@ -214,25 +205,26 @@ class TestClientCredentialsProvider:
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         # Set up cached token
         provider._token = "cached_token"
         provider._exp = 5000.0
-        
+
         # Mock _fetch to track if it's called
         fetch_called = False
-        async def mock_fetch():
+
+        async def mock_fetch() -> tuple[str, float]:
             nonlocal fetch_called
             fetch_called = True
             return "new_token", 8000.0
-        
+
         provider._fetch = mock_fetch
-        
-        with patch('time.time', return_value=4000.0):  # Before expiry
+
+        with patch("time.time", return_value=4000.0):  # Before expiry
             token = await provider.get_token()
-        
+
         assert token == "cached_token"
         assert not fetch_called
 
@@ -242,24 +234,25 @@ class TestClientCredentialsProvider:
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         # Set up expired cached token
         provider._token = "expired_token"
         provider._exp = 4000.0
-        
+
         fetch_called = False
-        async def mock_fetch():
+
+        async def mock_fetch() -> tuple[str, float]:
             nonlocal fetch_called
             fetch_called = True
             return "new_token", 8000.0
-        
+
         provider._fetch = mock_fetch
-        
-        with patch('time.time', return_value=5000.0):  # After expiry
+
+        with patch("time.time", return_value=5000.0):  # After expiry
             token = await provider.get_token()
-        
+
         assert token == "new_token"
         assert provider._token == "new_token"
         assert provider._exp == 8000.0
@@ -271,23 +264,24 @@ class TestClientCredentialsProvider:
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         # Set up existing token
         provider._token = "old_token"
         provider._exp = 5000.0
-        
+
         fetch_called = False
-        async def mock_fetch():
+
+        async def mock_fetch() -> tuple[str, float]:
             nonlocal fetch_called
             fetch_called = True
             return "refreshed_token", 8000.0
-        
+
         provider._fetch = mock_fetch
-        
+
         token = await provider.refresh()
-        
+
         assert token == "refreshed_token"
         assert provider._token == "refreshed_token"
         assert provider._exp == 8000.0
@@ -299,24 +293,24 @@ class TestClientCredentialsProvider:
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         fetch_call_count = 0
-        
-        async def mock_fetch():
+
+        async def mock_fetch() -> tuple[str, float]:
             nonlocal fetch_call_count
             fetch_call_count += 1
             await asyncio.sleep(0.1)  # Simulate network delay
             return f"token_{fetch_call_count}", 8000.0
-        
+
         provider._fetch = mock_fetch
-        
-        with patch('time.time', return_value=1000.0):
+
+        with patch("time.time", return_value=1000.0):
             # Make multiple concurrent calls
             tasks = [provider.get_token() for _ in range(5)]
             tokens = await asyncio.gather(*tasks)
-        
+
         # All should get the same token
         assert all(token == "token_1" for token in tokens)
         # _fetch should only be called once due to the lock
@@ -329,33 +323,29 @@ class TestClientCredentialsProvider:
         # Mock responses for both providers
         respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(
-                200,
-                json={
-                    "access_token": "test_token",
-                    "expires_in": 3600
-                }
+                200, json={"access_token": "test_token", "expires_in": 3600}
             )
         )
-        
+
         # Test with different early refresh values
         provider1 = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
             client_secret="test_secret",
-            early_refresh_s=60
+            early_refresh_s=60,
         )
-        
+
         provider2 = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
             client_secret="test_secret",
-            early_refresh_s=300
+            early_refresh_s=300,
         )
-        
-        with patch('time.time', return_value=1000.0):
+
+        with patch("time.time", return_value=1000.0):
             _, exp1 = await provider1._fetch()
             _, exp2 = await provider2._fetch()
-        
+
         # Provider1: 1000 + max(30, 3600-60) = 1000 + 3540 = 4540
         # Provider2: 1000 + max(30, 3600-300) = 1000 + 3300 = 4300
         assert exp1 == 4540.0
@@ -370,21 +360,21 @@ class TestClientCredentialsProvider:
                 200,
                 json={
                     "access_token": "short_token",
-                    "expires_in": 10  # Very short expiry
-                }
+                    "expires_in": 10,  # Very short expiry
+                },
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
             client_secret="test_secret",
-            early_refresh_s=60
+            early_refresh_s=60,
         )
-        
-        with patch('time.time', return_value=2000.0):
+
+        with patch("time.time", return_value=2000.0):
             _, exp_time = await provider._fetch()
-        
+
         # Should use minimum of 30 seconds: 2000 + max(30, 10-60) = 2000 + 30 = 2030
         assert exp_time == 2030.0
 
@@ -394,29 +384,26 @@ class TestClientCredentialsProvider:
         """Test that authentication headers are sent correctly."""
         token_route = respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(
-                200,
-                json={
-                    "access_token": "test_token",
-                    "expires_in": 3600
-                }
+                200, json={"access_token": "test_token", "expires_in": 3600}
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         await provider._fetch()
-        
+
         # Verify authentication was sent
         assert token_route.called
         request = token_route.calls[0].request
         assert "authorization" in request.headers
-        
+
         # Basic auth should be base64 encoded client_id:client_secret
         import base64
+
         expected_auth = base64.b64encode(b"test_client:test_secret").decode()
         assert request.headers["authorization"] == f"Basic {expected_auth}"
 
@@ -426,22 +413,18 @@ class TestClientCredentialsProvider:
         """Test that correct content-type header is sent."""
         token_route = respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(
-                200,
-                json={
-                    "access_token": "test_token",
-                    "expires_in": 3600
-                }
+                200, json={"access_token": "test_token", "expires_in": 3600}
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="test_client",
-            client_secret="test_secret"
+            client_secret="test_secret",
         )
-        
+
         await provider._fetch()
-        
+
         assert token_route.called
         request = token_route.calls[0].request
         assert request.headers["content-type"] == "application/x-www-form-urlencoded"
@@ -452,32 +435,28 @@ class TestClientCredentialsProvider:
         """Test complete token lifecycle with real HTTP mocking."""
         token_route = respx.post("https://auth.example.com/token").mock(
             return_value=httpx.Response(
-                200,
-                json={
-                    "access_token": "integration_token",
-                    "expires_in": 3600
-                }
+                200, json={"access_token": "integration_token", "expires_in": 3600}
             )
         )
-        
+
         provider = ClientCredentialsProvider(
             token_url="https://auth.example.com/token",
             client_id="integration_client",
             client_secret="integration_secret",
-            scope="read write"
+            scope="read write",
         )
-        
-        with patch('time.time', return_value=1000.0):
+
+        with patch("time.time", return_value=1000.0):
             # First call should fetch token
             token1 = await provider.get_token()
             assert token1 == "integration_token"
             assert token_route.call_count == 1
-            
+
             # Second call should use cached token
             token2 = await provider.get_token()
             assert token2 == "integration_token"
             assert token_route.call_count == 1  # No additional calls
-            
+
             # Refresh should force new fetch
             token3 = await provider.refresh()
             assert token3 == "integration_token"

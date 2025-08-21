@@ -1,7 +1,5 @@
 """Tests for auth module imports and exports."""
 
-import pytest
-
 from gavaconnect import auth
 from gavaconnect.auth import (
     BasicAuthPolicy,
@@ -26,17 +24,17 @@ class TestAuthModuleImports:
 
     def test_module_has_all_attribute(self):
         """Test that __all__ is properly defined."""
-        assert hasattr(auth, '__all__')
+        assert hasattr(auth, "__all__")
         assert isinstance(auth.__all__, list)
-        
+
         expected_exports = {
             "BasicAuthPolicy",
-            "BasicCredentials", 
+            "BasicCredentials",
             "BearerAuthPolicy",
             "TokenProvider",
             "ClientCredentialsProvider",
         }
-        
+
         assert set(auth.__all__) == expected_exports
 
     def test_module_docstring(self):
@@ -46,11 +44,11 @@ class TestAuthModuleImports:
 
     def test_classes_importable_from_module(self):
         """Test that classes can be imported from the module."""
-        assert hasattr(auth, 'BasicAuthPolicy')
-        assert hasattr(auth, 'BasicCredentials')
-        assert hasattr(auth, 'BearerAuthPolicy')
-        assert hasattr(auth, 'TokenProvider')
-        assert hasattr(auth, 'ClientCredentialsProvider')
+        assert hasattr(auth, "BasicAuthPolicy")
+        assert hasattr(auth, "BasicCredentials")
+        assert hasattr(auth, "BearerAuthPolicy")
+        assert hasattr(auth, "TokenProvider")
+        assert hasattr(auth, "ClientCredentialsProvider")
 
     def test_class_types(self):
         """Test that imported classes are the correct types."""
@@ -58,8 +56,10 @@ class TestAuthModuleImports:
         from gavaconnect.auth.basic import BasicCredentials as BasicCredentialsOrig
         from gavaconnect.auth.bearer import BearerAuthPolicy as BearerAuthPolicyOrig
         from gavaconnect.auth.bearer import TokenProvider as TokenProviderOrig
-        from gavaconnect.auth.providers import ClientCredentialsProvider as ClientCredentialsProviderOrig
-        
+        from gavaconnect.auth.providers import (
+            ClientCredentialsProvider as ClientCredentialsProviderOrig,
+        )
+
         assert BasicAuthPolicy is BasicAuthPolicyOrig
         assert BasicCredentials is BasicCredentialsOrig
         assert BearerAuthPolicy is BearerAuthPolicyOrig
