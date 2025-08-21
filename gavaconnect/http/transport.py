@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import random
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -17,6 +18,7 @@ from gavaconnect.helpers.idempotency import _can_retry, _full_jitter, _parse_ret
 RequestHook = Callable[[httpx.Request], Awaitable[None]]
 ResponseHook = Callable[[httpx.Request, httpx.Response], Awaitable[None]]
 _rng = random.SystemRandom()
+logger = logging.getLogger("gavaconnect.transport")
 
 
 class AsyncTransport:
@@ -99,8 +101,9 @@ class AsyncTransport:
         for req_hook in self._on_request:
             try:
                 await req_hook(req)
-            except Exception:
+            except Exception as e:
                 # Hooks must not break transport; swallow but continue.
+                logger.debug("Request hook failed: %s", e, exc_info=True)
                 pass
 
         while True:
@@ -124,7 +127,8 @@ class AsyncTransport:
             for resp_hook in self._on_response:
                 try:
                     await resp_hook(req, resp)
-                except Exception:
+                except Exception as e:
+                    logger.debug("Response hook failed: %s", e, exc_info=True)
                     pass
 
             # 401 handling: give auth one chance to refresh and retry once.
@@ -142,7 +146,8 @@ class AsyncTransport:
                     for req_hook in self._on_request:
                         try:
                             await req_hook(req)
-                        except Exception:
+                        except Exception as e:
+                            logger.debug("Request hook failed during retry: %s", e, exc_info=True)
                             pass
                     continue  # retry now with refreshed auth
 
@@ -174,7 +179,8 @@ class AsyncTransport:
                 for req_hook in self._on_request:
                     try:
                         await req_hook(req)
-                    except Exception:
+                    except Exception as e:
+                        logger.debug("Request hook failed during retry: %s", e, exc_info=True)
                         pass
                 continue
 
