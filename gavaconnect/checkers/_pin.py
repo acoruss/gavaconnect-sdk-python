@@ -1,7 +1,7 @@
 class KRAPINChecker:
     """Checker for KRA PIN."""
 
-    def __init__(self, id_number: str):
+    def __init__(self, id_number: str) -> None:
         self.id_number = id_number
 
     def check_by_id_number(self) -> str:
