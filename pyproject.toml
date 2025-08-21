@@ -25,6 +25,8 @@ classifiers = [
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.25.0",
+    "respx>=0.22.0",
     "mypy>=1.8.0",
     "ruff>=0.2.0",
     "bandit>=1.7.0",
@@ -95,6 +97,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
+markers = [
+    "asyncio: mark test as asyncio",
+]
 
 # Coverage configuration
 [tool.coverage.run]
@@ -125,4 +131,6 @@ include = [
 dev = [
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
+    "pytest-asyncio>=0.25.0",
+    "respx>=0.22.0",
 ]
