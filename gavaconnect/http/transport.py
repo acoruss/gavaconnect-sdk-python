@@ -81,7 +81,7 @@ class AsyncTransport:
             if (
                 resp.status_code in self.cfg.retry.retry_on_status
                 and attempt <= self.cfg.retry.max_attempts
-            ):
+            if self._should_retry_on_status(resp, attempt):
                 ra = resp.headers.get("retry-after")
                 backoff = (
                     float(ra)
