@@ -43,6 +43,8 @@ gavaconnect-sdk-python = "gavaconnect:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.setuptools.package-data]
+
 # Ruff configuration
 [tool.ruff]
 target-version = "py313"
@@ -56,24 +58,18 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-    "S",   # bandit (security)
-]
+select = ["E","F","I","UP","B","N","ANN","D"]
+
 ignore = [
     "E501",  # line too long (handled by formatter)
     "B008",  # do not perform function calls in argument defaults
     "S101",  # use of assert detected (pytest uses assert)
+    "D203",  # 1 blank line required before class docstring
+    "D213",  # Multi-line docstring summary should start at the second line
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]  # Allow assert in tests
+"tests/*" = ["S101", "ANN201", "D103", "D100"]  # Allow assert in tests, missing return types and docstrings
 
 # MyPy configuration
 [tool.mypy]
@@ -121,3 +117,12 @@ exclude_lines = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["gavaconnect"]
+include = [
+    "gavaconnect/py.typed"
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+]
