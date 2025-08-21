@@ -2,7 +2,7 @@
 Configuration classes for the GavaConnect SDK.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
@@ -18,5 +18,5 @@ class SDKConfig:
     connect_timeout_s: float = 5.0
     read_timeout_s: float = 30.0
     total_timeout_s: float = 40.0
-    retry: RetryPolicy = RetryPolicy()
+    retry: RetryPolicy = field(default_factory=RetryPolicy)
     user_agent: str = "gavaconnect-py/1.0.0"
