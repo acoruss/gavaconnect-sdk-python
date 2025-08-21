@@ -1,4 +1,5 @@
 """GavaConnect SDK for Python."""
+from .checkers import KRAPINChecker
 
 
 def main() -> None:
@@ -6,4 +7,4 @@ def main() -> None:
     print("Hello from gavaconnect-sdk-python!")
 
 
-__all__ = ["main"]
+__all__ = ["main", "KRAPINChecker"]
