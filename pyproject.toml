@@ -8,7 +8,9 @@ authors = [
     { name = "Musale Martin", email = "martinmshale@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "httpx>=0.28.1",
+]
 license = { text = "MIT" }
 keywords = ["gavaconnect", "sdk", "api"]
 classifiers = [
