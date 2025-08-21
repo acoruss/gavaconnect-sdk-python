@@ -36,7 +36,9 @@ class TestLogRequest:
         assert "headers=" in record.message
 
     @pytest.mark.asyncio
-    async def test_log_request_with_authorization_header(self, caplog: LogCaptureFixture):
+    async def test_log_request_with_authorization_header(
+        self, caplog: LogCaptureFixture
+    ):
         """Test that authorization headers are removed from logs."""
         headers = {
             "authorization": "Bearer secret-token",
