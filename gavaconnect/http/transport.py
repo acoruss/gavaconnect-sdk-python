@@ -110,7 +110,7 @@ class AsyncTransport:
         try:
             b = resp.json()
             err = b.get("error", {})
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError) as e:
             raise APIError(
                 resp.status_code,
                 "api_error",
