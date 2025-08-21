@@ -15,7 +15,7 @@ from gavaconnect.errors import APIError, RateLimitError, TransportError
 
 
 def _jitter(base: float, attempt: int) -> float:
-    return float(base * (2 ** (attempt - 1)) * (1 + random.random() * 0.2))
+    return float(base * (2 ** (attempt - 1)) * (1 + random.random() * 0.2))  # nosec B311
 
 
 class AsyncTransport:
