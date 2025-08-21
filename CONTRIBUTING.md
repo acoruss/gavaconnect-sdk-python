@@ -66,7 +66,7 @@ We welcome several types of contributions:
 
    ```bash
    # Using uv (recommended)
-   uv install --dev
+   uv sync --extra dev
 
    # Or using pip
    pip install -e ".[dev]"

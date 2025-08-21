@@ -66,7 +66,7 @@ main()
 2. Install dependencies:
 
    ```bash
-   uv install --dev
+   uv sync --extra dev
    ```
 
 3. Activate the virtual environment:
