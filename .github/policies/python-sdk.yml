@@ -17,5 +17,5 @@ configuration:
       requiredStatusChecks:
         - lint-and-test
       requiresStrictStatusChecks: true
-      restrictsPushes: false
+      restrictsPushes: true
       restrictsReviewDismissals: false
