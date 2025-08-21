@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import random
-from typing import Any
 
 import httpx
 
@@ -44,7 +44,7 @@ class AsyncTransport:
         await self.client.aclose()
 
     async def request(
-        self, method: str, url: str, *, auth: AuthPolicy | None = None, **kw: Any
+        self, method: str, url: str, *, auth: AuthPolicy | None = None, **kw: object
     ) -> httpx.Response:
         """Make an HTTP request with retry logic and authentication.
 
@@ -81,7 +81,7 @@ class AsyncTransport:
             if (
                 resp.status_code in self.cfg.retry.retry_on_status
                 and attempt <= self.cfg.retry.max_attempts
-            if self._should_retry_on_status(resp, attempt):
+            ):
                 ra = resp.headers.get("retry-after")
                 backoff = (
                     float(ra)
