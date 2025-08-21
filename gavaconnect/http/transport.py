@@ -147,7 +147,9 @@ class AsyncTransport:
                         try:
                             await req_hook(req)
                         except Exception as e:
-                            logger.debug("Request hook failed during retry: %s", e, exc_info=True)
+                            logger.debug(
+                                "Request hook failed during retry: %s", e, exc_info=True
+                            )
                             pass
                     continue  # retry now with refreshed auth
 
@@ -180,7 +182,9 @@ class AsyncTransport:
                     try:
                         await req_hook(req)
                     except Exception as e:
-                        logger.debug("Request hook failed during retry: %s", e, exc_info=True)
+                        logger.debug(
+                            "Request hook failed during retry: %s", e, exc_info=True
+                        )
                         pass
                 continue
 
