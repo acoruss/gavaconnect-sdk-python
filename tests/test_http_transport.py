@@ -496,3 +496,442 @@ class TestAsyncTransportIntegration:
             assert call_args[1]["headers"]["authorization"] == "Bearer token"
             assert call_args[1]["params"] == {"version": "v1"}
             assert call_args[1]["timeout"] == 60.0
+
+    @pytest.mark.asyncio
+    async def test_request_hook_exceptions(self):
+        """Test that request hook exceptions are handled gracefully."""
+        config = SDKConfig(base_url="https://api.example.com")
+        transport = AsyncTransport(config)
+
+        # Create a failing request hook
+        async def failing_hook(req):
+            raise Exception("Hook failure")
+
+        # Add the failing hook
+        transport._on_request.append(failing_hook)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_response = Mock()
+        mock_response.status_code = 200
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                return_value=mock_response,
+            ),
+            patch("gavaconnect.http.transport.logger") as mock_logger,
+        ):
+            # Request should still succeed despite hook failure
+            result = await transport.request("GET", "/test")
+
+            assert result == mock_response
+            # Verify that the exception was logged
+            mock_logger.debug.assert_called()
+            assert "Request hook failed" in str(mock_logger.debug.call_args[0][0])
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_response_hook_exceptions(self):
+        """Test that response hook exceptions are handled gracefully."""
+        config = SDKConfig(base_url="https://api.example.com")
+        transport = AsyncTransport(config)
+
+        # Create a failing response hook
+        async def failing_hook(req, resp):
+            raise Exception("Response hook failure")
+
+        # Add the failing hook
+        transport._on_response.append(failing_hook)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_response = Mock()
+        mock_response.status_code = 200
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                return_value=mock_response,
+            ),
+            patch("gavaconnect.http.transport.logger") as mock_logger,
+        ):
+            # Request should still succeed despite hook failure
+            result = await transport.request("GET", "/test")
+
+            assert result == mock_response
+            # Verify that the exception was logged
+            mock_logger.debug.assert_called()
+            assert "Response hook failed" in str(mock_logger.debug.call_args[0][0])
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_network_error_max_retries_exceeded(self):
+        """Test network error when max retries exceeded."""
+        config = SDKConfig(
+            base_url="https://api.example.com",
+            retry=RetryPolicy(max_attempts=2)
+        )
+        transport = AsyncTransport(config)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_request.method = "GET"
+        mock_request.headers = {}
+
+        network_error = httpx.ConnectError("Connection failed")
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=network_error,
+            ),
+            pytest.raises(TransportError, match="Connection failed"),
+        ):
+            await transport.request("GET", "/test")
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_network_error_non_idempotent_method(self):
+        """Test network error with non-idempotent method (no retry)."""
+        config = SDKConfig(base_url="https://api.example.com")
+        transport = AsyncTransport(config)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_request.method = "POST"
+        mock_request.headers = {}
+
+        network_error = httpx.ConnectError("Connection failed")
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=network_error,
+            ),
+            pytest.raises(TransportError, match="Connection failed"),
+        ):
+            await transport.request("POST", "/test")
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_auth_refresh_failure(self):
+        """Test auth refresh failure handling."""
+        config = SDKConfig(base_url="https://api.example.com")
+        transport = AsyncTransport(config)
+
+        # Mock auth that fails refresh
+        mock_auth = Mock(spec=AuthPolicy)
+        mock_auth.authorize = AsyncMock()
+        mock_auth.on_unauthorized = AsyncMock(side_effect=Exception("Refresh failed"))
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_response = Mock()
+        mock_response.status_code = 401
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                return_value=mock_response,
+            ),
+        ):
+            result = await transport.request("GET", "/test", auth=mock_auth)
+
+            # Should return the 401 response since refresh failed
+            assert result == mock_response
+            mock_auth.on_unauthorized.assert_called_once()
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_auth_refresh_returns_false(self):
+        """Test auth refresh returning False (no retry)."""
+        config = SDKConfig(base_url="https://api.example.com")
+        transport = AsyncTransport(config)
+
+        # Mock auth that returns False for refresh
+        mock_auth = Mock(spec=AuthPolicy)
+        mock_auth.authorize = AsyncMock()
+        mock_auth.on_unauthorized = AsyncMock(return_value=False)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_response = Mock()
+        mock_response.status_code = 401
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                return_value=mock_response,
+            ),
+        ):
+            result = await transport.request("GET", "/test", auth=mock_auth)
+
+            # Should return the 401 response since refresh returned False
+            assert result == mock_response
+            mock_auth.on_unauthorized.assert_called_once()
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_request_hook_exception_during_retry(self):
+        """Test request hook exception during retry."""
+        config = SDKConfig(
+            base_url="https://api.example.com",
+            retry=RetryPolicy(max_attempts=2, retry_on_status={500})
+        )
+        transport = AsyncTransport(config)
+
+        call_count = 0
+
+        async def failing_hook_on_retry(req):
+            nonlocal call_count
+            call_count += 1
+            if call_count > 1:  # Fail on retry
+                raise Exception("Hook failure on retry")
+
+        transport._on_request.append(failing_hook_on_retry)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_request.method = "GET"
+        mock_request.headers = {}
+
+        # First response: 500 (triggers retry), second response: 200
+        first_response = Mock()
+        first_response.status_code = 500
+        first_response.headers = {}
+
+        second_response = Mock()
+        second_response.status_code = 200
+        second_response.headers = {}
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=[first_response, second_response],
+            ),
+            patch("gavaconnect.http.transport.logger") as mock_logger,
+            patch("asyncio.sleep", new_callable=AsyncMock),
+        ):
+            result = await transport.request("GET", "/test")
+
+            assert result.status_code == 200
+            # Verify that the retry hook exception was logged
+            mock_logger.debug.assert_called()
+            logged_messages = [call[0][0] for call in mock_logger.debug.call_args_list]
+            assert any("Request hook failed during retry" in msg for msg in logged_messages)
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_auth_refresh_request_hook_exception(self):
+        """Test request hook exception during auth refresh retry."""
+        config = SDKConfig(base_url="https://api.example.com")
+        transport = AsyncTransport(config)
+
+        call_count = 0
+
+        async def failing_hook_on_auth_retry(req):
+            nonlocal call_count
+            call_count += 1
+            if call_count > 1:  # Fail on auth retry
+                raise Exception("Hook failure on auth retry")
+
+        transport._on_request.append(failing_hook_on_auth_retry)
+
+        # Mock auth that successfully refreshes
+        mock_auth = Mock(spec=AuthPolicy)
+        mock_auth.authorize = AsyncMock()
+        mock_auth.on_unauthorized = AsyncMock(return_value=True)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+
+        # First response: 401 (triggers auth refresh), second response: 200
+        first_response = Mock()
+        first_response.status_code = 401
+        first_response.headers = {}
+
+        second_response = Mock()
+        second_response.status_code = 200
+        second_response.headers = {}
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=[first_response, second_response],
+            ),
+            patch("gavaconnect.http.transport.logger") as mock_logger,
+        ):
+            result = await transport.request("GET", "/test", auth=mock_auth)
+
+            assert result.status_code == 200
+            # Verify that the auth retry hook exception was logged
+            mock_logger.debug.assert_called()
+            logged_messages = [call[0][0] for call in mock_logger.debug.call_args_list]
+            assert any("Request hook failed during retry" in msg for msg in logged_messages)
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_retry_after_server_hint_with_wiggle(self):
+        """Test retry with Retry-After header and wiggle factor."""
+        config = SDKConfig(
+            base_url="https://api.example.com",
+            retry=RetryPolicy(max_attempts=2, retry_on_status={429})
+        )
+        transport = AsyncTransport(config)
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_request.method = "GET"
+        mock_request.headers = {}
+
+        # First response with Retry-After, second response success
+        first_response = Mock()
+        first_response.status_code = 429
+        first_response.headers = {"retry-after": "10"}
+
+        second_response = Mock()
+        second_response.status_code = 200
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=[first_response, second_response],
+            ),
+            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+            patch("gavaconnect.helpers.idempotency._rng") as mock_rng,
+        ):
+            # Mock the random number generator for wiggle
+            mock_rng.uniform.return_value = 9.5  # 10 - 0.5 wiggle
+
+            result = await transport.request("GET", "/test")
+
+            assert result == second_response
+            
+            # Verify sleep was called with wiggled value
+            mock_sleep.assert_called_once()
+            sleep_duration = mock_sleep.call_args[0][0]
+            # Should be between 9.0 and 11.0 (10 +/- 10%)
+            assert 9.0 <= sleep_duration <= 11.0
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_network_error_retry_with_auth(self):
+        """Test network error retry with auth authorization."""
+        config = SDKConfig(
+            base_url="https://api.example.com",
+            retry=RetryPolicy(max_attempts=2)
+        )
+        transport = AsyncTransport(config)
+
+        # Mock auth
+        mock_auth = Mock(spec=AuthPolicy)
+        mock_auth.authorize = AsyncMock()
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_request.method = "GET"
+        mock_request.headers = {}
+
+        # First call: network error, second call: success
+        network_error = httpx.ConnectError("Connection failed")
+        success_response = Mock()
+        success_response.status_code = 200
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=[network_error, success_response],
+            ),
+            patch("asyncio.sleep", new_callable=AsyncMock),
+        ):
+            result = await transport.request("GET", "/test", auth=mock_auth)
+
+            assert result == success_response
+            # Verify auth.authorize was called for both attempts
+            assert mock_auth.authorize.call_count == 2
+
+        await transport.close()
+
+    @pytest.mark.asyncio
+    async def test_status_code_retry_with_auth(self):
+        """Test status code retry with auth authorization."""
+        config = SDKConfig(
+            base_url="https://api.example.com",
+            retry=RetryPolicy(max_attempts=2, retry_on_status={500})
+        )
+        transport = AsyncTransport(config)
+
+        # Mock auth
+        mock_auth = Mock(spec=AuthPolicy)
+        mock_auth.authorize = AsyncMock()
+
+        mock_request = Mock()
+        mock_request.extensions = {}
+        mock_request.method = "GET"
+        mock_request.headers = {}
+
+        # First response: 500 (triggers retry), second response: 200
+        first_response = Mock()
+        first_response.status_code = 500
+        first_response.headers = {}
+
+        second_response = Mock()
+        second_response.status_code = 200
+
+        with (
+            patch.object(transport.client, "build_request", return_value=mock_request),
+            patch.object(
+                transport.client,
+                "send",
+                new_callable=AsyncMock,
+                side_effect=[first_response, second_response],
+            ),
+            patch("asyncio.sleep", new_callable=AsyncMock),
+        ):
+            result = await transport.request("GET", "/test", auth=mock_auth)
+
+            assert result == second_response
+            # Verify auth.authorize was called for both attempts
+            assert mock_auth.authorize.call_count == 2
+
+        await transport.close()
