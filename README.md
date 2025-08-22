@@ -40,11 +40,74 @@ uv install
 
 ## Quick Start
 
-```python
-from gavaconnect import main
+### Basic SDK Usage
 
-# Basic usage example
-main()
+```python
+import gavaconnect
+
+# Create configuration
+config = gavaconnect.SDKConfig(base_url="https://sbx.kra.go.ke")
+
+# Work with errors and basic types
+try:
+    # Your API calls here
+    pass
+except gavaconnect.APIError as e:
+    print(f"API Error: {e.status} - {e.message}")
+```
+
+### PIN Validation (requires httpx and pydantic)
+
+```python
+from gavaconnect.facade_async import AsyncGavaConnect
+from gavaconnect.config import SDKConfig
+
+async def validate_pin():
+    config = SDKConfig(base_url="https://sbx.kra.go.ke")
+
+    async with AsyncGavaConnect(
+        config,
+        checkers_client_id="your_client_id",
+        checkers_client_secret="your_client_secret"
+    ) as sdk:
+        result = await sdk.checkers.validate_pin(pin="A000000000B")
+        print(result.model_dump(by_alias=True))
+        # Output: {"PIN": "A000000000B", "TaxPayerName": "...", "status": "VALID", "valid": true}
+
+# Run the async function
+import asyncio
+asyncio.run(validate_pin())
+```
+
+### Advanced Usage
+
+```python
+from gavaconnect.resources.checkers import CheckersClient, PinCheckResult
+from gavaconnect.auth import BasicTokenEndpointProvider, BasicPair, BearerAuthPolicy
+from gavaconnect.http.transport import AsyncTransport
+
+# Manual client setup for advanced use cases
+async def advanced_usage():
+    config = SDKConfig(base_url="https://sbx.kra.go.ke")
+    transport = AsyncTransport(config)
+
+    # Setup authentication
+    provider = BasicTokenEndpointProvider(
+        token_url="https://sbx.kra.go.ke/v1/token/generate",
+        basic=BasicPair("client_id", "client_secret"),
+        method="GET"
+    )
+    auth = BearerAuthPolicy(provider)
+
+    # Create client
+    client = CheckersClient(transport, auth)
+
+    # Use different validation methods
+    result1 = await client.validate_pin(pin="A000000000B")
+    result2 = await client.validate_pin_get(pin="A000000000B", query_key="PIN")
+    result3 = await client.validate_pin_raw({"PIN": "A000000000B", "extra": "data"})
+
+    await transport.close()
 ```
 
 ## Development

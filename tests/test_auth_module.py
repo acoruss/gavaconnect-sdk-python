@@ -31,8 +31,10 @@ class TestAuthModuleImports:
             "AuthPolicy",
             "BasicAuthPolicy",
             "BasicCredentials",
+            "BasicPair",
             "BearerAuthPolicy",
             "TokenProvider",
+            "BasicTokenEndpointProvider",
             "ClientCredentialsProvider",
         }
 
@@ -47,7 +49,9 @@ class TestAuthModuleImports:
         """Test that classes can be imported from the module."""
         assert hasattr(auth, "BasicAuthPolicy")
         assert hasattr(auth, "BasicCredentials")
+        assert hasattr(auth, "BasicPair")
         assert hasattr(auth, "BearerAuthPolicy")
+        assert hasattr(auth, "BasicTokenEndpointProvider")
         assert hasattr(auth, "TokenProvider")
         assert hasattr(auth, "ClientCredentialsProvider")
 
