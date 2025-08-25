@@ -1,6 +1,6 @@
 """Tests for telemetry graceful degradation without OpenTelemetry."""
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import httpx
 import pytest
@@ -74,3 +74,50 @@ class TestTelemetryGracefulDegradation:
 
         # Span should be removed from extensions
         assert "otel_span" not in request.extensions
+
+    @pytest.mark.asyncio
+    async def test_otel_request_span_early_return_otel_unavailable(self):
+        """Test otel_request_span returns early when OTEL_AVAILABLE is False."""
+        # Temporarily patch OTEL_AVAILABLE to False
+        with patch("gavaconnect.http.telemetry.OTEL_AVAILABLE", False):
+            # Create a real request object
+            request = httpx.Request("GET", "https://api.example.com/test")
+            request.extensions = {}
+
+            # Should return early and not add span
+            await otel_request_span(request)
+
+            # No span should be added
+            assert "otel_span" not in request.extensions
+
+    @pytest.mark.asyncio
+    async def test_otel_request_span_early_return_tracer_none(self):
+        """Test otel_request_span returns early when tracer is None."""
+        # Temporarily patch tracer to None while keeping OTEL_AVAILABLE True
+        with patch("gavaconnect.http.telemetry.OTEL_AVAILABLE", True):
+            with patch("gavaconnect.http.telemetry.tracer", None):
+                # Create a real request object
+                request = httpx.Request("GET", "https://api.example.com/test")
+                request.extensions = {}
+
+                # Should return early and not add span
+                await otel_request_span(request)
+
+                # No span should be added
+                assert "otel_span" not in request.extensions
+
+    @pytest.mark.asyncio
+    async def test_otel_response_span_early_return_otel_unavailable(self):
+        """Test otel_response_span returns early when OTEL_AVAILABLE is False."""
+        # Temporarily patch OTEL_AVAILABLE to False
+        with patch("gavaconnect.http.telemetry.OTEL_AVAILABLE", False):
+            # Create real request and response objects
+            request = httpx.Request("GET", "https://api.example.com/test")
+            request.extensions = {"some_other_extension": "value"}
+            response = httpx.Response(status_code=200)
+
+            # Should return early and not modify extensions
+            await otel_response_span(request, response)
+
+            # Extensions should remain unchanged
+            assert request.extensions == {"some_other_extension": "value"}
