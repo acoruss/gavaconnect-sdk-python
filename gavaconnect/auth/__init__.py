@@ -2,13 +2,16 @@
 
 from .basic import BasicAuthPolicy, BasicCredentials
 from .bearer import AuthPolicy, BearerAuthPolicy, TokenProvider
-from .providers import ClientCredentialsProvider
+from .credentials import BasicPair
+from .providers import BasicTokenEndpointProvider, ClientCredentialsProvider
 
 __all__ = [
     "AuthPolicy",
     "BasicAuthPolicy",
     "BasicCredentials",
+    "BasicPair",
     "BearerAuthPolicy",
     "TokenProvider",
+    "BasicTokenEndpointProvider",
     "ClientCredentialsProvider",
 ]

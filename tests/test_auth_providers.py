@@ -461,3 +461,73 @@ class TestClientCredentialsProvider:
             token3 = await provider.refresh()
             assert token3 == "integration_token"
             assert token_route.call_count == 2  # One additional call
+
+
+class TestBasicTokenEndpointProvider:
+    """Test BasicTokenEndpointProvider class."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_fetch_with_get_method(self):
+        """Test token fetch using GET method."""
+        from gavaconnect.auth.credentials import BasicPair
+        from gavaconnect.auth.providers import BasicTokenEndpointProvider
+
+        # Mock the token endpoint for GET request
+        token_route = respx.get("https://auth.example.com/token").mock(
+            return_value=httpx.Response(
+                200, json={"access_token": "get_method_token", "expires_in": 3600}
+            )
+        )
+
+        basic_creds = BasicPair(client_id="test_client", client_secret="test_secret")
+        provider = BasicTokenEndpointProvider(
+            token_url="https://auth.example.com/token",
+            basic=basic_creds,
+            method="GET",
+        )
+
+        with patch("time.time", return_value=1000.0):
+            token, exp_time = await provider._fetch()
+
+        assert token == "get_method_token"
+        assert exp_time == 1000.0 + max(30.0, 3600 - 60)  # 4540.0
+
+        # Verify the request was made correctly
+        assert token_route.called
+        request = token_route.calls[0].request
+        assert request.method == "GET"
+        assert request.url == "https://auth.example.com/token"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_fetch_with_post_method(self):
+        """Test token fetch using POST method (default)."""
+        from gavaconnect.auth.credentials import BasicPair
+        from gavaconnect.auth.providers import BasicTokenEndpointProvider
+
+        # Mock the token endpoint for POST request
+        token_route = respx.post("https://auth.example.com/token").mock(
+            return_value=httpx.Response(
+                200, json={"access_token": "post_method_token", "expires_in": 3600}
+            )
+        )
+
+        basic_creds = BasicPair(client_id="test_client", client_secret="test_secret")
+        provider = BasicTokenEndpointProvider(
+            token_url="https://auth.example.com/token",
+            basic=basic_creds,
+            method="POST",
+        )
+
+        with patch("time.time", return_value=1000.0):
+            token, exp_time = await provider._fetch()
+
+        assert token == "post_method_token"
+        assert exp_time == 1000.0 + max(30.0, 3600 - 60)  # 4540.0
+
+        # Verify the request was made correctly
+        assert token_route.called
+        request = token_route.calls[0].request
+        assert request.method == "POST"
+        assert request.url == "https://auth.example.com/token"

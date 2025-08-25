@@ -10,6 +10,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
+    "pydantic>=2.0.0",
 ]
 license = { text = "MIT" }
 keywords = ["gavaconnect", "sdk", "api"]
@@ -30,6 +31,10 @@ dev = [
     "mypy>=1.8.0",
     "ruff>=0.2.0",
     "bandit>=1.7.0",
+]
+otel = [
+    "opentelemetry-api>=1.36.0",
+    "opentelemetry-sdk>=1.36.0",
 ]
 
 [project.urls]
