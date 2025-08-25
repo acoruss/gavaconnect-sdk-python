@@ -13,7 +13,7 @@ class KRAPINChecker:
             id_number: The ID number to validate as KRA PIN.
 
         """
-        self.id_number = id_number.strip() if id_number else ""
+        self.id_number = id_number.strip() if id_number is not None else ""
 
     def check_by_id_number(self) -> str:
         """Validate KRA PIN format and content.
