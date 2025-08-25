@@ -22,4 +22,4 @@ mypy:
 	uv run mypy .
 
 bandit:
-	uv run bandit -r src/
+	uv run bandit -r gavaconnect/
