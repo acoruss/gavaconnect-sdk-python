@@ -126,16 +126,18 @@ class BasicTokenEndpointProvider:
     async def _fetch(self) -> tuple[str, float]:
         """Fetch a new token from the endpoint."""
         auth = (self._basic.client_id, self._basic.client_secret)
-        
+
         if self._method == "GET":
             resp = await self._client.get(self._url, auth=auth)
         else:
             resp = await self._client.post(self._url, auth=auth)
-            
+
         resp.raise_for_status()
         payload = resp.json()
         ttl = float(payload.get("expires_in", 3600))
-        return payload["access_token"], time.time() + max(MIN_TOKEN_TTL_S, ttl - self._early)
+        return payload["access_token"], time.time() + max(
+            MIN_TOKEN_TTL_S, ttl - self._early
+        )
 
     async def get_token(self) -> str:
         """Get the current access token, refreshing if necessary.

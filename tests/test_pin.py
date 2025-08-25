@@ -1,6 +1,5 @@
 """Tests for KRA PIN checker functionality."""
 
-
 from gavaconnect import checkers
 
 

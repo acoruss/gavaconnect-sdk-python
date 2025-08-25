@@ -16,7 +16,7 @@ class PinCheckResult(BaseModel):
     taxpayer_name: str | None = Field(default=None, alias="TaxPayerName")
     status: str | None = None
     valid: bool | None = None
-    
+
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
 
@@ -48,7 +48,9 @@ class CheckersClient:
         payload = {pin_key: pin}
         return await self.validate_pin_raw(payload)
 
-    async def validate_pin_get(self, *, pin: str, query_key: str = "PIN") -> PinCheckResult:
+    async def validate_pin_get(
+        self, *, pin: str, query_key: str = "PIN"
+    ) -> PinCheckResult:
         """Validate a KRA PIN using GET with query parameters.
 
         Args:
@@ -80,7 +82,7 @@ class CheckersClient:
         """
         headers = idempotency_headers()  # Make POST requests retryable
         resp = await self._tr.request(
-            "POST", 
+            "POST",
             "/checker/v1/pinbypin",
             auth=self._auth,
             json=payload,

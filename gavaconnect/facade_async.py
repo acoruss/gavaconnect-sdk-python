@@ -32,7 +32,7 @@ class AsyncGavaConnect:
         """
         self._config = config
         self._tr = AsyncTransport(config)
-        
+
         # Setup checkers client with Basic -> Bearer flow
         provider = BasicTokenEndpointProvider(
             token_url=token_url,
@@ -47,9 +47,9 @@ class AsyncGavaConnect:
         return self
 
     async def __aexit__(
-        self, 
+        self,
         exc_type: type[BaseException] | None,
-        exc_val: BaseException | None, 
+        exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
         """Async context manager exit."""

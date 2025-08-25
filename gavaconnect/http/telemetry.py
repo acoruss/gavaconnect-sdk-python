@@ -1,16 +1,15 @@
 """OpenTelemetry tracing utilities for HTTP requests."""
 
-from typing import Any
-
 import httpx
 
 try:
     from opentelemetry import trace
-    tracer = trace.get_tracer("gavaconnect")
+
+    tracer: trace.Tracer | None = trace.get_tracer("gavaconnect")
     OTEL_AVAILABLE = True
 except ImportError:
     # OpenTelemetry is optional - graceful degradation
-    tracer: Any = None
+    tracer = None
     OTEL_AVAILABLE = False
 
 
@@ -23,7 +22,7 @@ async def otel_request_span(req: httpx.Request) -> None:
     """
     if not OTEL_AVAILABLE or tracer is None:
         return
-    
+
     span = tracer.start_span(
         "http.client", attributes={"http.method": req.method, "http.url": str(req.url)}
     )
@@ -40,7 +39,7 @@ async def otel_response_span(req: httpx.Request, resp: httpx.Response) -> None:
     """
     if not OTEL_AVAILABLE:
         return
-        
+
     span = req.extensions.pop("otel_span", None)
     if span:
         span.set_attribute("http.status_code", resp.status_code)

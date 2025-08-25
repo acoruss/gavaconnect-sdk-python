@@ -2,11 +2,12 @@
 """Smoke test for the PIN validation checker."""
 
 import asyncio
+
 from gavaconnect import AsyncGavaConnect, SDKConfig
 
 
-async def smoke_test():
-    """Basic smoke test for the PIN checker implementation."""
+async def smoke_test() -> None:
+    """Run basic smoke test for the PIN checker implementation."""
     config = SDKConfig(base_url="https://sbx.kra.go.ke")
     
     async with AsyncGavaConnect(

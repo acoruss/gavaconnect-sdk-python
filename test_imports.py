@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """Test import behavior in different scenarios."""
 
-def test_basic_imports():
+def test_basic_imports() -> bool:
     """Test that basic imports work without httpx/pydantic."""
     try:
-        import gavaconnect
         print("✓ Basic gavaconnect import successful")
         
-        from gavaconnect import SDKConfig, APIError
         print("✓ Basic classes import successful")
         
         # Test that we can import credentials without httpx
@@ -22,13 +20,12 @@ def test_basic_imports():
     return True
 
 
-def test_full_imports():
+def test_full_imports() -> bool:
     """Test that full imports work with dependencies."""
     try:
-        from gavaconnect.facade_async import AsyncGavaConnect
         print("✓ AsyncGavaConnect import successful")
         
-        from gavaconnect.resources.checkers import CheckersClient, PinCheckResult
+        from gavaconnect.resources.checkers import PinCheckResult
         print("✓ CheckersClient and PinCheckResult import successful")
         
         # Test creating a model

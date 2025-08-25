@@ -7,7 +7,7 @@ from .providers import BasicTokenEndpointProvider, ClientCredentialsProvider
 
 __all__ = [
     "AuthPolicy",
-    "BasicAuthPolicy", 
+    "BasicAuthPolicy",
     "BasicCredentials",
     "BasicPair",
     "BearerAuthPolicy",
